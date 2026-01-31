@@ -16,7 +16,16 @@ def categorical_relationship(df, target):
     result = {}
     cat_cols = df.select_dtypes(include=["object", "category"]).columns
 
+    # Remove the target column from categorical columns to avoid self-analysis
+    cat_cols = [col for col in cat_cols if col != target]
+
     for col in cat_cols:
-        stat = df.groupby(col)[target].mean()
+        # Check if target is numeric to decide what aggregation to use
+        if df[target].dtype in ['int64', 'float64']:
+            # For numeric target, calculate mean
+            stat = df.groupby(col)[target].mean()
+        else:
+            # For categorical target, calculate value counts for each group
+            stat = df.groupby(col)[target].value_counts()
         result[col] = stat
     return result

@@ -47,10 +47,41 @@ def main():
 
     console.print(table)
 
+    # Check for visualization flag in command line arguments
+    generate_viz = "--viz" in sys.argv or "-v" in sys.argv
+
     # Get target column from command line argument or user input
     if len(sys.argv) > 1:
-        target = sys.argv[1]
-        console.print(f"\n[bold blue]Using target column from command line:[/bold blue] [italic]{target}[/italic]")
+        # Remove viz flag from sys.argv if present to get the actual target
+        args = [arg for arg in sys.argv[1:] if arg not in ["--viz", "-v"]]
+        if args:
+            target = args[0]
+            console.print(f"\n[bold blue]Using target column from command line:[/bold blue] [italic]{target}[/italic]")
+        else:
+            # Interactive selection
+            console.print("\n[bold]Choose target column:[/bold]")
+            for i, col in enumerate(df.columns, 1):
+                console.print(f"[{i}] {col}")
+
+            while True:
+                try:
+                    choice = Prompt.ask("\nEnter column number or name", default="")
+                    if choice.isdigit():
+                        idx = int(choice) - 1
+                        if 0 <= idx < len(df.columns):
+                            target = df.columns[idx]
+                            break
+                        else:
+                            console.print("[red]Invalid column number. Please try again.[/red]")
+                    else:
+                        target = choice.strip()
+                        if target in df.columns:
+                            break
+                        else:
+                            console.print(f"[red]'{target}' does not exist in dataset. Please try again.[/red]")
+                except KeyboardInterrupt:
+                    console.print("\n[yellow]Operation cancelled by user.[/yellow]")
+                    return
     else:
         # Interactive selection
         console.print("\n[bold]Choose target column:[/bold]")
@@ -81,7 +112,14 @@ def main():
         console.print(f"[red]ERROR: '{target}' does not exist in dataset.[/red]")
         return
 
-    # 3. Run automated EDA with progress bar
+    # Determine if visualizations should be generated
+    cmd_generate_viz = "--viz" in sys.argv or "-v" in sys.argv
+    if not cmd_generate_viz:
+        # Ask if user wants visualizations
+        viz_choice = Prompt.ask("\n[bold]Would you like to generate visualizations?[/bold] ([blue]y[/blue]/[red]n[/red])", default="n")
+        cmd_generate_viz = viz_choice.lower() in ['y', 'yes', 'true', '1']
+
+    # Run automated EDA with progress bar
     console.print(f"\n[bold blue]Running full EDA on target:[/bold blue] [italic]{target}[/italic]")
 
     with Progress(
@@ -90,7 +128,7 @@ def main():
         transient=True,
     ) as progress:
         progress.add_task(description="Performing EDA analysis...", total=None)
-        clean_df, insights = full_eda(df, target=target)
+        clean_df, insights = full_eda(df, target=target, generate_viz=cmd_generate_viz)
 
     # 4. Display Insights in a nice format
     console.print("\n[bold green]EDA Insights Summary:[/bold green]\n")

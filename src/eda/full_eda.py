@@ -4,9 +4,22 @@ from ..cleaning.outliers import detect_outliers_zscore
 from ..features.relationships import numerical_relationship, categorical_relationship
 from ..features.importance import top_features
 from ..statistics.distributions import analyze_distribution
+from ..visualization import generate_visualizations
 
 
-def full_eda(df, target):
+def full_eda(df, target, generate_viz=False, viz_save_path="visualizations"):
+    """
+    Perform full EDA on a dataset.
+
+    Args:
+        df: Input dataframe
+        target: Target column name
+        generate_viz: Whether to generate visualizations (default False)
+        viz_save_path: Path to save visualizations (default "visualizations")
+
+    Returns:
+        tuple: (cleaned_dataframe, insights_dict)
+    """
     insights = {}
 
     # Missing values
@@ -47,5 +60,9 @@ def full_eda(df, target):
 
     # Categorical relationships
     insights["categorical_relationships"] = categorical_relationship(df, target)
+
+    # Generate visualizations if requested
+    if generate_viz:
+        generate_visualizations(df, target, viz_save_path)
 
     return df, insights

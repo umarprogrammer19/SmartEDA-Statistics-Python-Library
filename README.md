@@ -12,6 +12,7 @@ A comprehensive Python library for automated Exploratory Data Analysis (EDA) and
 - **Feature Analysis**: Correlation analysis, feature importance ranking
 - **Rich CLI Interface**: Colorful, interactive command-line interface
 - **Mixed Data Types**: Handles both numeric and categorical variables
+- **Visualizations**: Comprehensive plots and charts using matplotlib and seaborn
 
 ## 📋 Requirements
 
@@ -43,6 +44,11 @@ python main.py
 
 # Or specify target column directly
 python main.py "target_column_name"
+
+# With visualizations (using --viz or -v flag)
+python main.py "target_column_name" --viz
+# or
+python main.py "target_column_name" -v
 ```
 
 ### Programmatic Usage
@@ -62,7 +68,21 @@ print(insights["missing"])          # Missing value percentages
 print(insights["correlation"])      # Correlations with target
 print(insights["top_features"])     # Top important features
 print(insights["outliers"])         # Outlier detection results
+
+# Generate visualizations
+clean_df, insights = full_eda(df, target="your_target_column", generate_viz=True, viz_save_path="my_plots")
 ```
+
+### Visualization Capabilities
+
+The library generates the following visualizations:
+
+- **Missing Values Plot**: Bar chart showing percentage of missing values per column
+- **Target Distribution Plot**: Histogram and box plot for numeric targets, bar chart for categorical targets
+- **Correlation Heatmap**: Heatmap showing correlations between top features
+- **Top Features Plot**: Horizontal bar chart showing feature importance based on correlation
+- **Categorical Relationships Plot**: Box plots showing relationship between categorical features and target
+- **Outliers Plot**: Box plots for detecting outliers in numerical features
 
 ## 🏗️ Project Structure
 
@@ -77,10 +97,12 @@ src/
 ├── features/           # Feature analysis
 │   ├── relationships.py     # Feature relationships
 │   └── importance.py        # Feature importance ranking
-└── statistics/         # Statistical functions
-    ├── basic_stats.py       # Mean, median, mode, etc.
-    ├── distributions.py     # Distribution functions
-    └── hypothesis_tests.py  # Statistical tests
+├── statistics/         # Statistical functions
+│   ├── basic_stats.py       # Mean, median, mode, etc.
+│   ├── distributions.py     # Distribution functions
+│   └── hypothesis_tests.py  # Statistical tests
+└── visualization/      # Visualization capabilities
+    └── __init__.py         # Plotting functions and visualization generator
 ```
 
 ## 🔧 Available Functions

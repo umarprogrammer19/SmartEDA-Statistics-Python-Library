@@ -8,6 +8,7 @@ from rich.text import Text
 from rich.progress import Progress, SpinnerColumn, TextColumn
 from rich import print as rprint
 from src.eda.full_eda import full_eda
+from src.target_detection import detect_target_variable, suggest_target_variables
 
 console = Console()
 
@@ -50,13 +51,47 @@ def main():
     # Check for visualization flag in command line arguments
     generate_viz = "--viz" in sys.argv or "-v" in sys.argv
 
-    # Get target column from command line argument or user input
+    # Auto-detect target column if requested or if no command line argument is provided
+    auto_detect = "--auto" in sys.argv or "-a" in sys.argv
+
+    # Get target column from command line argument, auto-detection, or user input
     if len(sys.argv) > 1:
-        # Remove viz flag from sys.argv if present to get the actual target
-        args = [arg for arg in sys.argv[1:] if arg not in ["--viz", "-v"]]
-        if args:
+        # Remove viz and auto flags from sys.argv if present to get the actual target
+        args = [arg for arg in sys.argv[1:] if arg not in ["--viz", "-v", "--auto", "-a"]]
+        if args and not auto_detect:
             target = args[0]
             console.print(f"\n[bold blue]Using target column from command line:[/bold blue] [italic]{target}[/italic]")
+        elif auto_detect:
+            # Auto-detect target
+            target = detect_target_variable(df)
+            if target:
+                console.print(f"\n[bold blue]Auto-detected target column:[/bold blue] [italic]{target}[/italic]")
+            else:
+                console.print("\n[bold yellow]Could not auto-detect target column. Please select manually.[/bold yellow]")
+                # Fall back to manual selection
+                console.print("\n[bold]Choose target column:[/bold]")
+                for i, col in enumerate(df.columns, 1):
+                    console.print(f"[{i}] {col}")
+
+                while True:
+                    try:
+                        choice = Prompt.ask("\nEnter column number or name", default="")
+                        if choice.isdigit():
+                            idx = int(choice) - 1
+                            if 0 <= idx < len(df.columns):
+                                target = df.columns[idx]
+                                break
+                            else:
+                                console.print("[red]Invalid column number. Please try again.[/red]")
+                        else:
+                            target = choice.strip()
+                            if target in df.columns:
+                                break
+                            else:
+                                console.print(f"[red]'{target}' does not exist in dataset. Please try again.[/red]")
+                    except KeyboardInterrupt:
+                        console.print("\n[yellow]Operation cancelled by user.[/yellow]")
+                        return
         else:
             # Interactive selection
             console.print("\n[bold]Choose target column:[/bold]")
@@ -83,30 +118,81 @@ def main():
                     console.print("\n[yellow]Operation cancelled by user.[/yellow]")
                     return
     else:
-        # Interactive selection
-        console.print("\n[bold]Choose target column:[/bold]")
-        for i, col in enumerate(df.columns, 1):
-            console.print(f"[{i}] {col}")
+        # Check if auto-detection was requested via flag
+        if auto_detect:
+            target = detect_target_variable(df)
+            if target:
+                console.print(f"\n[bold blue]Auto-detected target column:[/bold blue] [italic]{target}[/italic]")
+            else:
+                console.print("\n[bold yellow]Could not auto-detect target column. Please select manually.[/bold yellow]")
+                # Fall back to manual selection
+                console.print("\n[bold]Choose target column:[/bold]")
+                for i, col in enumerate(df.columns, 1):
+                    console.print(f"[{i}] {col}")
 
-        while True:
-            try:
-                choice = Prompt.ask("\nEnter column number or name", default="")
-                if choice.isdigit():
-                    idx = int(choice) - 1
-                    if 0 <= idx < len(df.columns):
-                        target = df.columns[idx]
-                        break
-                    else:
-                        console.print("[red]Invalid column number. Please try again.[/red]")
+                while True:
+                    try:
+                        choice = Prompt.ask("\nEnter column number or name", default="")
+                        if choice.isdigit():
+                            idx = int(choice) - 1
+                            if 0 <= idx < len(df.columns):
+                                target = df.columns[idx]
+                                break
+                            else:
+                                console.print("[red]Invalid column number. Please try again.[/red]")
+                        else:
+                            target = choice.strip()
+                            if target in df.columns:
+                                break
+                            else:
+                                console.print(f"[red]'{target}' does not exist in dataset. Please try again.[/red]")
+                    except KeyboardInterrupt:
+                        console.print("\n[yellow]Operation cancelled by user.[/yellow]")
+                        return
+        else:
+            # Interactive selection with option to auto-detect
+            console.print("\n[bold]Choose target column:[/bold]")
+
+            # Show auto-detection suggestions
+            suggestions = suggest_target_variables(df, top_n=3)
+            if suggestions:
+                console.print("\n[bold green]Auto-detection suggestions:[/bold green]")
+                for i, (col, score) in enumerate(suggestions, 1):
+                    console.print(f"  {i}. [italic]{col}[/italic] (score: {score})")
+
+                auto_choice = Prompt.ask("\n[bold]Would you like to auto-select from suggestions?[/bold] ([blue]y[/blue]/[red]n[/red]/[yellow]number[/yellow])", default="n")
+
+                if auto_choice.lower() in ['y', 'yes']:
+                    target = suggestions[0][0]  # Select top suggestion
+                    console.print(f"\n[bold blue]Selected target column:[/bold blue] [italic]{target}[/italic]")
+                elif auto_choice.isdigit() and 1 <= int(auto_choice) <= len(suggestions):
+                    idx = int(auto_choice) - 1
+                    target = suggestions[idx][0]
+                    console.print(f"\n[bold blue]Selected target column:[/bold blue] [italic]{target}[/italic]")
                 else:
-                    target = choice.strip()
-                    if target in df.columns:
-                        break
-                    else:
-                        console.print(f"[red]'{target}' does not exist in dataset. Please try again.[/red]")
-            except KeyboardInterrupt:
-                console.print("\n[yellow]Operation cancelled by user.[/yellow]")
-                return
+                    # Manual selection
+                    for i, col in enumerate(df.columns, 1):
+                        console.print(f"[{i}] {col}")
+
+                    while True:
+                        try:
+                            choice = Prompt.ask("\nEnter column number or name", default="")
+                            if choice.isdigit():
+                                idx = int(choice) - 1
+                                if 0 <= idx < len(df.columns):
+                                    target = df.columns[idx]
+                                    break
+                                else:
+                                    console.print("[red]Invalid column number. Please try again.[/red]")
+                            else:
+                                target = choice.strip()
+                                if target in df.columns:
+                                    break
+                                else:
+                                    console.print(f"[red]'{target}' does not exist in dataset. Please try again.[/red]")
+                        except KeyboardInterrupt:
+                            console.print("\n[yellow]Operation cancelled by user.[/yellow]")
+                            return
 
     if target not in df.columns:
         console.print(f"[red]ERROR: '{target}' does not exist in dataset.[/red]")

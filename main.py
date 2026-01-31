@@ -1,18 +1,19 @@
 import pandas as pd
+import sys
 from src.eda.full_eda import full_eda
 
 
 def main():
-    print("\n📊 SMART EDA LIBRARY – AUTO EDA STARTED\n")
+    print("\n[EDA] SMART EDA LIBRARY - AUTO EDA STARTED\n")
 
     # -----------------------------
     # 1. Load your dataset here
     # -----------------------------
     try:
         df = pd.read_csv("data.csv")
-        print("✔ Dataset loaded successfully.")
+        print("[OK] Dataset loaded successfully.")
     except FileNotFoundError:
-        print("❌ ERROR: data.csv not found.")
+        print("[ERROR] data.csv not found.")
         print("Please place your dataset in the same folder as main.py")
         return
 
@@ -22,23 +23,28 @@ def main():
     print("\nColumns in your dataset:")
     print(list(df.columns))
 
-    target = input("\n👉 Enter target column name: ").strip()
+    # Get target column from command line argument or user input
+    if len(sys.argv) > 1:
+        target = sys.argv[1]
+        print(f"\nUsing target column from command line: {target}")
+    else:
+        target = input("\nEnter target column name: ").strip()
 
     if target not in df.columns:
-        print(f"❌ ERROR: '{target}' does not exist in dataset.")
+        print(f"[ERROR] '{target}' does not exist in dataset.")
         return
 
     # -----------------------------
     # 3. Run automated EDA
     # -----------------------------
-    print("\n🔍 Running full EDA... Please wait...\n")
+    print("\n[INFO] Running full EDA... Please wait...\n")
 
     clean_df, insights = full_eda(df, target=target)
 
     # -----------------------------
     # 4. Print Insights
     # -----------------------------
-    print("\n🎯 EDA Insights Summary:\n")
+    print("\n[SUMMARY] EDA Insights Summary:\n")
 
     for key, value in insights.items():
         print(f"{key.upper()}:")
@@ -49,9 +55,9 @@ def main():
     # 5. Save cleaned dataset
     # -----------------------------
     clean_df.to_csv("cleaned_output.csv", index=False)
-    print("\n💾 Cleaned dataset saved as: cleaned_output.csv")
+    print("\n[SAVE] Cleaned dataset saved as: cleaned_output.csv")
 
-    print("\n✅ EDA Complete.\n")
+    print("\n[COMPLETE] EDA Complete.\n")
 
 
 if __name__ == "__main__":

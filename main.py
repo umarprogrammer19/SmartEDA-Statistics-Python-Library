@@ -6,9 +6,7 @@ from src.eda.full_eda import full_eda
 def main():
     print("\n[EDA] SMART EDA LIBRARY - AUTO EDA STARTED\n")
 
-    # -----------------------------
     # 1. Load your dataset here
-    # -----------------------------
     try:
         df = pd.read_csv("data.csv")
         print("[OK] Dataset loaded successfully.")
@@ -17,9 +15,7 @@ def main():
         print("Please place your dataset in the same folder as main.py")
         return
 
-    # -----------------------------
     # 2. Ask user for target column
-    # -----------------------------
     print("\nColumns in your dataset:")
     print(list(df.columns))
 
@@ -34,16 +30,12 @@ def main():
         print(f"[ERROR] '{target}' does not exist in dataset.")
         return
 
-    # -----------------------------
     # 3. Run automated EDA
-    # -----------------------------
     print("\n[INFO] Running full EDA... Please wait...\n")
 
     clean_df, insights = full_eda(df, target=target)
 
-    # -----------------------------
     # 4. Print Insights
-    # -----------------------------
     print("\n[SUMMARY] EDA Insights Summary:\n")
 
     for key, value in insights.items():
@@ -51,9 +43,7 @@ def main():
         print(value)
         print("-" * 50)
 
-    # -----------------------------
     # 5. Save cleaned dataset
-    # -----------------------------
     clean_df.to_csv("cleaned_output.csv", index=False)
     print("\n[SAVE] Cleaned dataset saved as: cleaned_output.csv")
 

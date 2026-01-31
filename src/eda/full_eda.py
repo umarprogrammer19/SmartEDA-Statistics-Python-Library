@@ -1,7 +1,7 @@
-from cleaning.missing_values import missing_percentage, fill_missing
-from cleaning.outliers import detect_outliers_zscore
-from features.relationships import numerical_relationship
-from features.importance import top_features
+from ..cleaning.missing_values import missing_percentage, fill_missing
+from ..cleaning.outliers import detect_outliers_zscore
+from ..features.relationships import numerical_relationship
+from ..features.importance import top_features
 
 
 def full_eda(df, target):

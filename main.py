@@ -125,7 +125,7 @@ def main():
                 console.print(f"\n[bold blue]Auto-detected target column:[/bold blue] [italic]{target}[/italic]")
             else:
                 console.print("\n[bold yellow]Could not auto-detect target column. Please select manually.[/bold yellow]")
-                # Fall back to manual selection
+                # back to manual selection
                 console.print("\n[bold]Choose target column:[/bold]")
                 for i, col in enumerate(df.columns, 1):
                     console.print(f"[{i}] {col}")
